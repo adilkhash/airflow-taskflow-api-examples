@@ -26,12 +26,6 @@ def get_number_of_lines(file_path):
     return lines
 
 
-def get_number_of_lines_wrapper(**context):
-    ti = context['ti']
-    file_path = ti.xcom_pull(task_ids='download_task')
-    return get_number_of_lines(file_path)
-
-
 with DAG(
         dag_id='titanic_old_style_dag',
         start_date=dt.datetime(2021, 3, 1),
@@ -44,7 +38,8 @@ with DAG(
 
     get_lines_task = PythonOperator(
         task_id='get_lines',
-        python_callable=get_number_of_lines_wrapper
+        op_args=['{{ ti.xcom_pull(task_ids="download_task") }}'],
+        python_callable=get_number_of_lines
     )
 
     download_task >> get_lines_task
