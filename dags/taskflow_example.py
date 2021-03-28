@@ -32,4 +32,4 @@ with DAG(
                     lines += 1
         return lines
 
-    get_number_of_lines(download_titanic_dataset)
+    get_number_of_lines(download_titanic_dataset())
