@@ -4,6 +4,7 @@ import datetime as dt
 import requests
 from airflow import DAG
 from airflow.decorators import task
+from airflow.providers.http.operators.http import SimpleHttpOperator
 
 
 with DAG(
@@ -11,6 +12,13 @@ with DAG(
     start_date=dt.datetime(2021, 3, 1),
     schedule_interval='@once'
 ) as dag:
+
+    check_if_file_exists = SimpleHttpOperator(
+        method='HEAD',
+        task_id='check_file_existence',
+        http_conn_id='web_stanford_http_id',
+        endpoint='/class/archive/cs/cs109/cs109.1166/stuff/titanic.csv',
+    )
 
     @task
     def download_titanic_dataset():
@@ -32,4 +40,9 @@ with DAG(
                     lines += 1
         return lines
 
-    get_number_of_lines(download_titanic_dataset())
+    file_path = download_titanic_dataset()
+    number_of_lines = get_number_of_lines(file_path)
+
+    check_if_file_exists >> file_path
+
+    # check_if_file_exists >> file_path >> number_of_lines  # так тоже можно
